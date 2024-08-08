@@ -12,7 +12,14 @@ const svg = d3.select('.container')
                 .attr('width', width)
                 .attr('height', height)
                 .attr('id', 'map')
-                .attr('viewBox',[0, 0, width, width]);
+                .attr('viewBox',[0, 0, width, width])
+                .call(d3.zoom().scaleExtent([1, 2])
+                        .on('zoom', zoomed));
+
+const tooltip = d3.select('.container')
+                    .append('div')
+                    .attr('id','tooltip')
+                    .attr('opacity', 0);
 
 d3.select('.container')
     .append('p')    
@@ -42,14 +49,28 @@ fetch(urlGEOJSON)
         .enter()
         .append('path')
         .attr('d', path)
-        .attr('fill', 'lightgrey')
-        .attr('stroke', 'grey');
+        .attr('fill', 'none')
+        .attr('stroke', 'grey')
+        .on('mousemove', (event, d) => {
+            d3.select(event.target).style('fill', 'lightgrey');
+            tooltip.style('opacity', 0.8);
+            tooltip.style('left', event.pageX + 10 + 'px');
+            tooltip.style('top', event.pageY - 50 + 'px');
+            tooltip.html(
+                `${d.properties.ISO3166_2_CODE}<br>
+                ${d.properties.Name_VI}
+                `
+            )
+        })
+        .on('mouseout', (event, d) => {
+            tooltip.style('opacity', 0);
+            d3.select(event.target).style('fill','none')
+        })
             
-    // svg.append('path')
-    //     .datum(country)
-    //     .attr('fill', 'none')
-    //     .attr('stroke', 'green')
-    //     .attr('d', path)
 
     })
     .catch(err => console.log(err))
+
+function zoomed(event) {
+    svg.attr('transform', event.transform);
+}
